@@ -1,0 +1,9 @@
+vosk
+numpy
+sounddevice
+pynput
+pystray
+Pillow
+pyspellchecker
+pyautogui
+pytesseract

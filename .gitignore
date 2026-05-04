@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+env/
+
+# PyInstaller (keep build/voiext.spec in Git)
+dist/
+build/voiext/
+*.spec.bak
+
+# Local / secrets (never commit)
+.claude/settings.local.json
+**/settings.local.json
+voicetype_config.json
+
+# Large speech models (users download via app or Vosk; see README)
+model/
+model-indian-backup/
+
+# Optional old copy
+voiext2/
+
+# OS
+Thumbs.db
+.DS_Store
