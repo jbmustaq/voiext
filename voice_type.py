@@ -1251,6 +1251,19 @@ def handle_final(text):
         return
 
     # --- Dictation mode (no command matched) — type the text ---
+    # Autocomplete approval: if prediction is active and user says yes/okay, accept it
+    if state == STATE_DICTATION and active_prediction is not None:
+        if matches_phrase(lower, APPROVAL_PHRASES):
+            accepted = active_prediction
+            active_prediction = None
+            send_to_gui("prediction", "")
+            finalize_text(accepted)
+            send_to_gui("log", "Prediction accepted.")
+            return
+        # User said something else — discard prediction
+        active_prediction = None
+        send_to_gui("prediction", "")
+
     finalize_text(text)
 
 
@@ -1361,10 +1374,13 @@ def do_start_listening():
 
 
 def do_stop_listening():
-    global state, rec, stream, prev_state
+    global state, rec, stream, prev_state, active_prediction, recent_text
     if state in (STATE_DICTATION, STATE_COMMAND):
         prev_state = state
     state = STATE_IDLE
+    active_prediction = None
+    recent_text = ""
+    send_to_gui("prediction", "")
     if stream is not None:
         try:
             stream.stop(); stream.close()
@@ -1393,9 +1409,11 @@ def do_enter_dictation():
 
 def do_enter_command():
     """Switch from dictation mode to command mode."""
-    global state, rec
+    global state, rec, active_prediction
     if state == STATE_DICTATION:
         state = STATE_COMMAND
+        active_prediction = None
+        send_to_gui("prediction", "")
         with lock:
             if model is not None:
                 rec = KaldiRecognizer(model, SAMPLE_RATE)
@@ -1405,10 +1423,12 @@ def do_enter_command():
 
 
 def do_go_to_sleep():
-    global state, prev_state
+    global state, prev_state, active_prediction
     if state in (STATE_DICTATION, STATE_COMMAND):
         prev_state = state
     state = STATE_SLEEPING
+    active_prediction = None
+    send_to_gui("prediction", "")
     send_to_gui("log", "Sleeping... (say 'wake up')")
     send_to_gui("state", state)
 
@@ -1471,6 +1491,13 @@ class VoiceTypeGUI:
             fg="#999999", bg="#1e1e1e", anchor="w", wraplength=340
         )
         self.partial_label.pack(fill="x", padx=10, pady=0)
+
+        # --- Autocomplete prediction ---
+        self.prediction_label = tk.Label(
+            self.root, text="", font=("Segoe UI", 10, "italic"),
+            fg="#6688bb", bg="#1e1e1e", anchor="w", wraplength=340
+        )
+        self.prediction_label.pack(fill="x", padx=10, pady=(0, 2))
 
         # --- Log ---
         log_frame = tk.Frame(self.root, bg="#1e1e1e")
