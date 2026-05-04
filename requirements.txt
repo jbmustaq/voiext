@@ -7,3 +7,5 @@ Pillow
 pyspellchecker
 pyautogui
 pytesseract
+transformers
+torch
