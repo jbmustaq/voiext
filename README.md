@@ -58,9 +58,6 @@ git push -u origin main
 
 When Git asks for credentials:
 
-- **Username:** `jbmustaq`
-- **Password:** paste your **token** (not your Google/GitHub account password)
-
 If `git` is not recognized, install [Git for Windows](https://git-scm.com/download/win) and reopen the terminal.
 
 ### After the first push

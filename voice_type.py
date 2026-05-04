@@ -1461,7 +1461,7 @@ class VoiceTypeGUI:
 
         # Position bottom-right
         self.root.update_idletasks()
-        w, h = 360, 400
+        w, h = 360, 460
         sw = self.root.winfo_screenwidth()
         sh = self.root.winfo_screenheight()
         x = sw - w - 20
@@ -1569,6 +1569,17 @@ class VoiceTypeGUI:
         )
         self.autostart_cb.pack(anchor="w", padx=8)
         self.autostart_var.set(1 if load_auto_start() else 0)
+
+        # --- Autocomplete toggle ---
+        self.autocomplete_var = tk.IntVar()
+        self.autocomplete_cb = tk.Checkbutton(
+            self.root, text="Sentence autocomplete", variable=self.autocomplete_var,
+            command=self.toggle_autocomplete, font=("Segoe UI", 8),
+            fg="#888888", bg="#1e1e1e", selectcolor="#1e1e1e",
+            activebackground="#1e1e1e", activeforeground="#aaaaaa"
+        )
+        self.autocomplete_cb.pack(anchor="w", padx=8)
+        self.autocomplete_var.set(1 if autocomplete_enabled else 0)
 
         # --- Mic gain ---
         gain_frame = tk.Frame(self.root, bg="#1e1e1e")
@@ -1768,6 +1779,10 @@ class VoiceTypeGUI:
                     )
                 elif event == "command":
                     self.flash_command(data)
+                elif event == "prediction":
+                    self.prediction_label.config(
+                        text=f'  suggest: "{data}"' if data else ""
+                    )
                 elif event == "log":
                     self.add_log(data)
                 elif event == "mode_toggle":
@@ -1794,6 +1809,7 @@ class VoiceTypeGUI:
         self.banner.configure(bg=color)
         self.status_label.configure(text=label, bg=color)
         self.partial_label.config(text="")
+        self.prediction_label.config(text="")
         self.update_tray(new_state)
 
         if new_state == STATE_IDLE:
@@ -1863,6 +1879,14 @@ class VoiceTypeGUI:
 
     def toggle_auto_start(self):
         save_auto_start(self.autostart_var.get())
+
+    def toggle_autocomplete(self):
+        global autocomplete_enabled, active_prediction
+        autocomplete_enabled = bool(self.autocomplete_var.get())
+        save_autocomplete_enabled(autocomplete_enabled)
+        if not autocomplete_enabled:
+            active_prediction = None
+            self.prediction_label.config(text="")
 
     def on_gain_changed(self, val):
         global mic_gain
